@@ -14,8 +14,7 @@ Version: %(cat .version)
 Release: %(echo ${BUILD_METADATA})
 Source: %{name}-%{version}.tar.bz2
 
-# Compiling not currently required:
-# BuildArchitectures: noarch
+BuildArch: noarch
 
 Requires: jq
 Requires: python3-boto3
