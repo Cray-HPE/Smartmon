@@ -1,0 +1,12 @@
+[Unit]
+Description=SMART
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c "/usr/bin/smartmon.sh -r > /var/lib/node_exporter/smartmon.prom"
+SyslogIdentifier=Smartmon
+Restart=always
+RestartSec=86400
+
+[Install]
+WantedBy=multi-user.target
