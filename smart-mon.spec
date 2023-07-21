@@ -4,7 +4,6 @@
 
 %define etc_ceph_dir /etc/cray/ceph
 %define node_exporter_dir /var/lib/node_exporter
-%define unit_dir /etc/systemd/system
 
 Name: smart-mon
 Vendor: Hewlett Packard Enterprise Company
@@ -34,8 +33,7 @@ binary and corresponding service.
 %dir %{etc_ceph_dir}
 %dir %{node_exporter_dir}
 %{_bindir}/smartmon.sh
-%{unit_dir}/smart.service
-#%{_unitdir}/smart.service
+%{_unitdir}/smart.service
 %{etc_ceph_dir}/node-exporter.yml
 
 %prep
@@ -45,13 +43,11 @@ binary and corresponding service.
 
 %install
 install -m 755 -d %{buildroot}%{_bindir}/
-#install -m 755 -d %{buildroot}%{_unitdir}/
-install -m 755 -d %{buildroot}%{unit_dir}/
+install -m 755 -d %{buildroot}%{_unitdir}/
 install -m 755 -d %{buildroot}%{etc_ceph_dir}/
 install -m 755 -d %{buildroot}%{node_exporter_dir}/
 install -m 755 smartmon.sh %{buildroot}%{_bindir}
-#install -m 644 smart.service %{buildroot}%{_unitdir}
-install -m 644 smart.service %{buildroot}%{unit_dir}
+install -m 644 smart.service %{buildroot}%{_unitdir}
 install -m 755 node-exporter.yml %{buildroot}%{etc_ceph_dir}
 
 %pre
