@@ -1,5 +1,6 @@
 @Library('csm-shared-library') _
 
+def sleImage = 'artifactory.algol60.net/csm-docker/stable/csm-docker-sle:latest'
 pipeline {
     agent {
         label "metal-gcp-builder"
@@ -7,28 +8,62 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: "10"))
+        disableConcurrentBuilds()
+        timeout(time: 20, unit: 'MINUTES')
         timestamps()
     }
 
     environment {
+        ARCH = 'noarch'
+        BUILD_DIR = "${env.WORKSPACE}/dist/rpmbuild/${ARCH}"
         NAME = "smart-mon"
         DESCRIPTION = "Repository for building rpm to install and configure node_exporter binary."
         IS_STABLE = getBuildIsStable()
+        PRIMARY_NODE = "${env.NODE_NAME}"
         BUILD_METADATA = getRpmRevision(isStable: env.IS_STABLE)
     }
 
     stages {
         stage("Build") {
+
+            agent {
+                docker {
+                    label "${PRIMARY_NODE}"
+                    reuseNode true
+                    args "-v /home/jenkins/.ssh:/home/jenkins/.ssh"
+                    image "${sleImage}"
+                }
+            }
             steps {
                 sh "make rpm"
             }
         }
 
         stage("Publish") {
+            agent {
+                docker {
+                    label "${PRIMARY_NODE}"
+                    reuseNode true
+                    args "-v /home/jenkins/.ssh:/home/jenkins/.ssh"
+                    image "${sleImage}"
+                }
+            }
             steps {
                 script {
-                    publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/RPMS/noarch/*.rpm", arch: "noarch", os: "noos", isStable: env.IS_STABLE)
-                    publishCsmRpms(component: env.NAME, pattern: "dist/rpmbuild/SRPMS/*.rpm", arch: "src", os: "noos", isStable: env.IS_STABLE)
+                    publishCsmRpms(
+                            component: env.NAME,
+                            pattern: "dist/rpmbuild/${ARCH}/RPMS/${ARCH}/*.rpm",
+                            arch: "noarch",
+                            os: "noos",
+                            isStable: env.IS_STABLE,
+                    )
+                    publishCsmRpms(
+                            component: env.NAME,
+                            pattern: "dist/rpmbuild/${ARCH}/SRPMS/*.rpm",
+                            arch: "src",
+                            os: "noos",
+                            isStable: env.IS_STABLE,
+                    )
                 }
             }
         }
